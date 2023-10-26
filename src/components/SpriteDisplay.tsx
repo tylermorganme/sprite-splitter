@@ -3,15 +3,16 @@ import { useUserInterfaceContext } from "../context/UserInterfaceContext";
 
 interface SpriteDisplayProps {
     scale: number;
+    currentAnimationNumber: number;
 }
 
-const SpriteDisplay: React.FC<SpriteDisplayProps> = ({scale }) => {
+const SpriteDisplay: React.FC<SpriteDisplayProps> = ({scale, currentAnimationNumber}) => {
     const [currentFrame, setCurrentFrame] = useState(0);
     const [frameCount, setFrameCount] = useState(0);
+
     const {
         frameWidth,
         frameHeight,
-        currentAnimationNumber,
         setNumberOfAnimations,
         spriteUrl
     } = useUserInterfaceContext();
@@ -22,20 +23,23 @@ const SpriteDisplay: React.FC<SpriteDisplayProps> = ({scale }) => {
             img.src = spriteUrl;
             img.onload = () => {
                 setFrameCount(Math.floor(img.width / frameWidth));
-                setNumberOfAnimations(Math.floor(img.height) /frameHeight);
+                setNumberOfAnimations(Math.floor(img.height /frameHeight));
             };
         }
-    }, [spriteUrl, frameWidth]);
+    }, [spriteUrl, frameWidth, frameHeight]);
 
     useEffect(() => {
+        if (frameCount <=0){
+            return
+        }
         const interval = setInterval(() => {
             setCurrentFrame((prevFrame) => (prevFrame + 1) % frameCount);
-        }, 100); // Adjust this duration for faster/slower animation
+        }, 100);
 
         return () => {
             clearInterval(interval);
         };
-    }, [frameWidth, frameCount]);
+    }, [frameCount]);
 
     const animatedSpriteBGPosition = `${-currentFrame * frameWidth}px ${-currentAnimationNumber * frameHeight}px`;
     const spriteRowBGPosition = `0px ${-currentAnimationNumber * frameHeight}px`;
@@ -49,7 +53,6 @@ const SpriteDisplay: React.FC<SpriteDisplayProps> = ({scale }) => {
                     backgroundImage: `url(${spriteUrl})`,
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: spriteRowBGPosition,
-                    // transform: `scale(${scale})`,
                     transformOrigin: '0 0',
                 }}
             />
