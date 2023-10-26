@@ -1,26 +1,29 @@
 import React, { useState } from 'react';
 import { useUserInterfaceContext } from '../context/UserInterfaceContext';
 
-type Props = {
-    onUpload: (file: File, width: number, height: number) => void;
-};
-
-export const SpriteForm: React.FC<Props> = ({ onUpload }) => {
+export const SpriteForm: React.FC = () => {
     const { frameWidth, setFrameWidth, frameHeight,
-        setFrameHeight, frameNumber, setFrameNumber } = useUserInterfaceContext()
+        setFrameHeight,
+        currentAnimationNumber,
+        setCurrentAnimationNumber,
+        numberOfAnimations,
+        setSpriteUrl,
+    } = useUserInterfaceContext()
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-        const file = fileInput.files?.[0];
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
         if (file) {
-            onUpload(file, frameWidth, frameHeight);
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = () => {
+                setSpriteUrl(reader.result as string);
+            };
         }
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <input type="file" id="fileInput" accept="image/*" required />
+        <div>
+            <input type="file" id="fileInput" accept="image/*" onChange={handleFileChange} required />
             <input
                 type="number"
                 value={frameWidth}
@@ -35,13 +38,12 @@ export const SpriteForm: React.FC<Props> = ({ onUpload }) => {
             />
             <input
                 type="range"
-                value={frameNumber}
+                value={currentAnimationNumber}
                 min={0}
-                max={12}
-                onChange={(e) => setFrameNumber(Number(e.target.value))}
+                max={numberOfAnimations - 1}
+                onChange={(e) => setCurrentAnimationNumber(Number(e.target.value))}
                 placeholder="Sprite #"
             />
-            <button type="submit">Upload & Preview</button>
-        </form>
+        </div>
     );
 };
